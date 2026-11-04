@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrustRAG v2 Guide</title>
+<style>
+:root{
+  --bg:#f8f7f4;--surface:#ffffff;--ink:#141413;--ink2:#55534e;--ink3:#86847d;--line:#e3e1da;
+  --accent:#2a78d6;--accent-soft:#e8f0fb;--code:#f1efe9;
+  --c-ret:#2a78d6;--c-ret-bg:#eaf2fc;--c-gen:#eb6834;--c-gen-bg:#fdefe8;--c-ver:#12925f;--c-ver-bg:#e5f5ee;
+  --c-ops:#6f6d66;--c-ops-bg:#efeee9;--bad:#b42828;--bad-bg:#fbe7e7;--good:#0f7b4a;--good-bg:#e3f4ea;--warn:#8a5a00;--warn-bg:#fbf0d6;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141413;--surface:#1c1c1a;--ink:#efeee9;--ink2:#b9b7ae;--ink3:#8a887f;--line:#33322d;
+  --accent:#5b9cf0;--accent-soft:#1d2a3d;--code:#252521;
+  --c-ret:#5b9cf0;--c-ret-bg:#1b2738;--c-gen:#f08a5d;--c-gen-bg:#35231b;--c-ver:#43c08a;--c-ver-bg:#16302a;
+  --c-ops:#a9a79e;--c-ops-bg:#262623;--bad:#f08a8a;--bad-bg:#3a1e1e;--good:#5fd09a;--good-bg:#16302a;--warn:#e8b54d;--warn-bg:#382d15;}}
+:root[data-theme="dark"]{
+  --bg:#141413;--surface:#1c1c1a;--ink:#efeee9;--ink2:#b9b7ae;--ink3:#8a887f;--line:#33322d;
+  --accent:#5b9cf0;--accent-soft:#1d2a3d;--code:#252521;
+  --c-ret:#5b9cf0;--c-ret-bg:#1b2738;--c-gen:#f08a5d;--c-gen-bg:#35231b;--c-ver:#43c08a;--c-ver-bg:#16302a;
+  --c-ops:#a9a79e;--c-ops-bg:#262623;--bad:#f08a8a;--bad-bg:#3a1e1e;--good:#5fd09a;--good-bg:#16302a;--warn:#e8b54d;--warn-bg:#382d15;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:0 16px}
+header.hero{padding:56px 0 28px;border-bottom:1px solid var(--line)}
+.kicker{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+h1{font-size:clamp(30px,5vw,44px);line-height:1.1;margin:8px 0 14px;letter-spacing:-.02em}
+.lede{font-size:18px;color:var(--ink2);max-width:760px;margin:0}
+nav.toc{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+nav.toc .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:8px;padding-bottom:8px;scrollbar-width:none}
+nav.toc a{flex:none;font-size:13.5px;color:var(--ink2);text-decoration:none;padding:5px 10px;border-radius:6px}
+nav.toc a:hover{background:var(--accent-soft);color:var(--accent)}
+section{padding:44px 0 8px}
+h2{font-size:26px;letter-spacing:-.01em;margin:0 0 6px}
+h2 .n{color:var(--ink3);font-weight:500;margin-right:8px}
+h3{font-size:18px;margin:28px 0 8px}
+p{margin:10px 0}
+.sub{color:var(--ink2);margin:0 0 18px;max-width:800px}
+a{color:var(--accent)}
+code,kbd{font:13.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 6px;border-radius:4px}
+pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font:13.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:10px 0 16px}
+pre code{background:none;padding:0}
+.cmt{color:var(--ink3)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card h4{margin:0 0 6px;font-size:15.5px}
+.card p{margin:4px 0;font-size:14.5px;color:var(--ink2)}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.stat .v{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:15px;color:var(--ink3);font-weight:500}
+.stat .l{font-size:13.5px;color:var(--ink2);margin-top:6px}
+.arrow{color:var(--ink3);font-weight:500;padding:0 3px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:12px 0 18px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);font-weight:600;background:color-mix(in srgb,var(--surface) 70%,var(--bg))}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.p-ret{background:var(--c-ret-bg);color:var(--c-ret)}.p-gen{background:var(--c-gen-bg);color:var(--c-gen)}
+.p-ver{background:var(--c-ver-bg);color:var(--c-ver)}.p-ops{background:var(--c-ops-bg);color:var(--c-ops)}
+.good{color:var(--good);font-weight:600}.bad{color:var(--bad);font-weight:600}
+.note{border-left:3px solid var(--warn);background:var(--warn-bg);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:15px}
+.note.info{border-color:var(--accent);background:var(--accent-soft)}
+.note.danger{border-color:var(--bad);background:var(--bad-bg)}
+.note b:first-child{display:block;margin-bottom:2px}
+figure{margin:16px 0}
+figure img{width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+figcaption{font-size:13.5px;color:var(--ink3);margin-top:6px}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;overflow-x:auto}
+.diagram svg{display:block;width:100%;min-width:760px;height:auto}
+svg .box rect{stroke-width:1.5}
+svg .ret rect{fill:var(--c-ret-bg);stroke:var(--c-ret)}svg .gen rect{fill:var(--c-gen-bg);stroke:var(--c-gen)}
+svg .ver rect{fill:var(--c-ver-bg);stroke:var(--c-ver)}svg .ops rect{fill:var(--c-ops-bg);stroke:var(--c-ops)}
+svg .bad rect{fill:var(--bad-bg);stroke:var(--bad)}
+svg text{fill:var(--ink);font-family:ui-sans-serif,system-ui,sans-serif}
+svg .t{font-size:14px;font-weight:650}svg .s{font-size:11.5px;fill:var(--ink2)}
+svg .lab{font-size:11.5px;fill:var(--ink2);font-style:italic}
+svg .ln{stroke:var(--ink3);stroke-width:1.6;fill:none}
+svg .dash{stroke-dasharray:5 4}
+svg .lane{font-size:11px;letter-spacing:.08em;font-weight:700;fill:var(--ink3)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin:10px 4px 0}
+.legend span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--sw)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin:10px 0}
+details summary{cursor:pointer;font-weight:600}
+ol.steps{padding-left:22px}ol.steps li{margin:6px 0}
+footer{border-top:1px solid var(--line);margin-top:48px;padding:24px 0 48px;color:var(--ink3);font-size:13.5px}
+@media (max-width:600px){body{font-size:15.5px}section{padding-top:34px}.stat .v{font-size:26px}}
+</style>
+</head>
+<body>
+
+<header class="hero"><div class="wrap">
+  <div class="kicker">CSE 400 · University of Asia Pacific · Project guide</div>
+  <h1>TrustRAG v2: retrieval you can check, answers you can cite</h1>
+  <p class="lede">A redesigned RAG pipeline that retrieves better evidence, refuses to answer from thin air, and checks every sentence's citation before showing it. It is built from your literature analysis (the 23-paper systematic review and the CSE 400 report) and fixes the specific weaknesses in the current TrustRAG code.</p>
+</div></header>
+
+<nav class="toc"><div class="wrap">
+  <a href="#summary">Summary</a><a href="#diagnosis">What was wrong</a><a href="#architecture">Architecture</a>
+  <a href="#stages">Stage by stage</a><a href="#modules">Module map</a><a href="#tools">Tools</a>
+  <a href="#metrics">Metrics</a><a href="#results">Results</a><a href="#run">Run it</a><a href="#test">Test it</a>
+  <a href="#experiments">Thesis experiments</a><a href="#config">Config</a><a href="#requirements">Requirements</a><a href="#limits">Limits</a>
+</div></nav>
+
+<main class="wrap">
+
+<!-- ============================================================ SUMMARY -->
+<section id="summary">
+  <h2><span class="n">01</span>Summary</h2>
+  <p class="sub">Three goals, each tackled by more than one stage of the pipeline, because the review's main finding is that no single technique solves citation reliability (RQ6, RQ7).</p>
+  <div class="grid g3">
+    <div class="card"><h4><span class="pill p-ret">Retrieval</span></h4><p>Hybrid BM25 + dense search fused with Reciprocal Rank Fusion, a cross-encoder reranker, and a CRAG-style quality gate with corrective fallback and an entity-coverage check.</p></div>
+    <div class="card"><h4><span class="pill p-gen">Less hallucination</span></h4><p>A citation-enforced prompt with an explicit abstain token. Sentence-window NLI verification with a numeric/identifier guard. Unsupported claims are rewritten from evidence or removed, and the system abstains when evidence is missing.</p></div>
+    <div class="card"><h4><span class="pill p-ver">Correct citations</span></h4><p>Each claim is checked against the source it <em>actually cites</em>. Ghost citations are deleted, misattributed claims are re-cited to the passage that entails them, and unnecessary citations are pruned (CiteFix / VeriCite style).</p></div>
+  </div>
+
+  <h3>Headline numbers measured in this build</h3>
+  <div class="grid g4">
+    <div class="stat"><div class="v">27.0%<span class="arrow">→</span>2.6%</div><div class="l">Hallucinated claims delivered, fault-injection test (1,284 claims, 10 seeds)</div></div>
+    <div class="stat"><div class="v">45.2%<span class="arrow">→</span>100%</div><div class="l">Delivered claims carrying a correct citation, same test</div></div>
+    <div class="stat"><div class="v">0.0%</div><div class="l">Correct claims wrongly removed by the verifier (581 clean claims)</div></div>
+    <div class="stat"><div class="v">12.5%<span class="arrow">→</span>62.5%</div><div class="l">Unanswerable questions correctly refused (naive RAG vs TrustRAG), with 0% false refusals on answerable questions</div></div>
+  </div>
+  <div class="note"><b>Read these numbers honestly</b>This build ran in an offline workspace without access to HuggingFace or Groq. So the numbers above come from <b>lite mode</b>: TF-IDF/LSA embeddings, a lexical reranker, a lexical NLI and an extractive stand-in for the LLM, on the built-in 50-question demo set. They show that the mechanisms work and are wired correctly. They are not yet thesis results. For publishable numbers, run full mode (BGE + bge-reranker + DeBERTa NLI + Llama-3.3-70B) on RAGBench / HotpotQA / ASQA, as described in <a href="#experiments">Thesis experiments</a>. Your previous system scored <b>0.29 faithfulness</b> on RAGBench-PubMedQA, and that is the baseline to beat.</div>
+</section>
+
+<!-- ============================================================ DIAGNOSIS -->
+<section id="diagnosis">
+  <h2><span class="n">02</span>What was holding the old code back</h2>
+  <p class="sub">Found by reading the uploaded <code>Trustrag_pocha</code> code and its benchmark output (<code>ragbench_pubmedqa_summary.json</code>: faithfulness 0.2925, faithfulness pass rate 6%).</p>
+  <div class="tbl"><table>
+    <tr><th>Problem in v1</th><th>Effect</th><th>Fix in v2</th></tr>
+    <tr><td>NLI ran on the <em>whole</em> title + abstract as one premise, with <code>max_length=512</code></td><td>Long evidence was silently cut off, so true claims were scored "neutral". This is the main reason faithfulness was 0.29.</td><td>Premises are 1-, 2- and 3-sentence sliding windows. The best window decides, and that window is returned as the evidence.</td></tr>
+    <tr><td>The verifier picked the best-matching paper and ignored which source the answer had cited</td><td>Citation correctness was never measured or fixed. A wrong <code>[2]</code> passed as long as any paper matched.</td><td>Claims are checked against their <b>cited</b> passages first, then against all passages to detect misattribution and re-cite.</td></tr>
+    <tr><td>Small NLI model (<code>nli-deberta-v3-small</code>); the label order was hard-coded</td><td>Weaker entailment decisions; silent errors if a model orders its labels differently.</td><td>Default <code>DeBERTa-v3-base-mnli-fever-anli</code> (large optional); label indices are read from <code>model.config.id2label</code>.</td></tr>
+    <tr><td>Broken imports (<code>from claim_extractor import</code>, <code>from answer_rebuilder import</code> although the files are in <code>verification/</code>)</td><td><code>rag_pipeline.py</code> and the evaluator fail unless run from a specific folder.</td><td>A single installable package, <code>trustrag/</code>, with relative imports and 29 tests.</td></tr>
+    <tr><td>No retrieval-quality control: every retrieved paper went to the LLM</td><td>Noisy context makes the LLM hallucinate or answer from memory.</td><td>Reranker relevance + gate (correct / ambiguous / incorrect), corrective rewrite, entity-coverage check, and abstention.</td></tr>
+    <tr><td>Evaluation used oracle contexts and the same model that verified</td><td>Retrieval was never evaluated, and the scores were self-graded.</td><td>Pooled-corpus retrieval benchmark, a separate judge NLI, ablations, and a ground-truth fault-injection test.</td></tr>
+    <tr><td>API keys stored in <code>.env</code> inside the zip</td><td>Keys are exposed to anyone who receives the zip.</td><td><code>.env.example</code> only, and <code>.env</code> is git-ignored. <b>Rotate the old Groq, Google and Semantic Scholar keys.</b></td></tr>
+  </table></div>
+</section>
+
+<!-- ============================================================ ARCHITECTURE -->
+<section id="architecture">
+  <h2><span class="n">03</span>System architecture</h2>
+  <p class="sub">A query flows through three groups of stages. Every stage is a separate module behind a small interface, so any model can be swapped (NFR2, NFR5), and every run is logged (FR10, NFR8).</p>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 560" role="img" aria-label="TrustRAG v2 pipeline architecture">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color:var(--ink3)"/></marker></defs>
+    <text class="lane" x="20" y="34">1 · RETRIEVAL</text>
+    <g class="box ops"><rect x="20" y="50" width="130" height="70" rx="10"/><text class="t" x="85" y="80" text-anchor="middle">User query</text><text class="s" x="85" y="99" text-anchor="middle">CLI · web · API</text></g>
+    <g class="box ret"><rect x="180" y="50" width="185" height="70" rx="10"/><text class="t" x="272" y="76" text-anchor="middle">Hybrid retrieval</text><text class="s" x="272" y="95" text-anchor="middle">BM25 + dense (BGE)</text><text class="s" x="272" y="110" text-anchor="middle">fused with RRF</text></g>
+    <g class="box ret"><rect x="395" y="50" width="160" height="70" rx="10"/><text class="t" x="475" y="76" text-anchor="middle">Reranker</text><text class="s" x="475" y="95" text-anchor="middle">cross-encoder</text><text class="s" x="475" y="110" text-anchor="middle">relevance ∈ [0,1]</text></g>
+    <g class="box ret"><rect x="585" y="50" width="170" height="70" rx="10"/><text class="t" x="670" y="76" text-anchor="middle">Retrieval gate</text><text class="s" x="670" y="95" text-anchor="middle">correct / ambiguous /</text><text class="s" x="670" y="110" text-anchor="middle">incorrect + entity check</text></g>
+    <g class="box ret"><rect x="785" y="50" width="195" height="70" rx="10"/><text class="t" x="882" y="76" text-anchor="middle">Context packing</text><text class="s" x="882" y="95" text-anchor="middle">dedup · top-k · label</text><text class="s" x="882" y="110" text-anchor="middle">passages S1…Sk</text></g>
+    <g class="box ret"><rect x="395" y="165" width="250" height="58" rx="10"/><text class="t" x="520" y="189" text-anchor="middle">Corrective fallback</text><text class="s" x="520" y="208" text-anchor="middle">query rewrite (LLM / PRF) · web search</text></g>
+    <g class="box bad"><rect x="785" y="165" width="195" height="58" rx="10"/><text class="t" x="882" y="189" text-anchor="middle">Abstain</text><text class="s" x="882" y="208" text-anchor="middle">"not enough evidence"</text></g>
+    <path class="ln" d="M150 85 H178" marker-end="url(#ah)"/><path class="ln" d="M365 85 H393" marker-end="url(#ah)"/>
+    <path class="ln" d="M555 85 H583" marker-end="url(#ah)"/><path class="ln" d="M755 85 H783" marker-end="url(#ah)"/>
+    <text class="lab" x="769" y="44" text-anchor="middle">correct</text>
+    <path class="ln" d="M670 120 V194 H647" marker-end="url(#ah)"/><text class="lab" x="662" y="152" text-anchor="end">ambiguous / incorrect</text>
+    <path class="ln dash" d="M395 194 H272 V122" marker-end="url(#ah)"/><text class="lab" x="282" y="150">retry (≤2 rounds)</text>
+    <path class="ln" d="M730 120 V142 H882 V163" marker-end="url(#ah)"/><text class="lab" x="806" y="136" text-anchor="middle">still incorrect</text>
+
+    <text class="lane" x="20" y="246">2 · GENERATION + VERIFICATION + CORRECTION</text>
+    <path class="ln" d="M980 85 H992 V256 H102 V282" marker-end="url(#ah)"/>
+    <g class="box gen"><rect x="20" y="284" width="165" height="76" rx="10"/><text class="t" x="102" y="310" text-anchor="middle">Generation</text><text class="s" x="102" y="329" text-anchor="middle">citation-enforced prompt</text><text class="s" x="102" y="344" text-anchor="middle">may say INSUFFICIENT</text></g>
+    <g class="box ver"><rect x="215" y="284" width="160" height="76" rx="10"/><text class="t" x="295" y="310" text-anchor="middle">Claim extraction</text><text class="s" x="295" y="329" text-anchor="middle">sentence → claim</text><text class="s" x="295" y="344" text-anchor="middle">parse [S#], find ghosts</text></g>
+    <g class="box ver"><rect x="405" y="284" width="180" height="76" rx="10"/><text class="t" x="495" y="310" text-anchor="middle">NLI verification</text><text class="s" x="495" y="329" text-anchor="middle">sentence windows · cited</text><text class="s" x="495" y="344" text-anchor="middle">vs all · numeric guard</text></g>
+    <g class="box ver"><rect x="615" y="284" width="165" height="76" rx="10"/><text class="t" x="697" y="310" text-anchor="middle">Correction</text><text class="s" x="697" y="329" text-anchor="middle">re-cite · prune · rewrite</text><text class="s" x="697" y="344" text-anchor="middle">or remove</text></g>
+    <g class="box ver"><rect x="810" y="284" width="170" height="76" rx="10"/><text class="t" x="895" y="310" text-anchor="middle">Answer policy</text><text class="s" x="895" y="329" text-anchor="middle">answered / partial /</text><text class="s" x="895" y="344" text-anchor="middle">abstained + confidence</text></g>
+    <path class="ln" d="M185 322 H213" marker-end="url(#ah)"/><path class="ln" d="M375 322 H403" marker-end="url(#ah)"/>
+    <path class="ln" d="M585 322 H613" marker-end="url(#ah)"/><path class="ln" d="M780 322 H808" marker-end="url(#ah)"/>
+    <path class="ln dash" d="M697 362 V392 H495 V364" marker-end="url(#ah)"/><text class="lab" x="520" y="408">rewritten claim is re-verified</text>
+
+    <text class="lane" x="20" y="448">3 · OUTPUT, LOGGING, EVALUATION</text>
+    <g class="box ver"><rect x="790" y="462" width="190" height="70" rx="10"/><text class="t" x="885" y="490" text-anchor="middle">Verified answer</text><text class="s" x="885" y="509" text-anchor="middle">every sentence cited &amp; checked</text></g>
+    <g class="box ops"><rect x="560" y="462" width="200" height="70" rx="10"/><text class="t" x="660" y="490" text-anchor="middle">SQLite audit log</text><text class="s" x="660" y="509" text-anchor="middle">query · verdicts · timings</text></g>
+    <g class="box ops"><rect x="20" y="462" width="510" height="70" rx="10"/><text class="t" x="275" y="490" text-anchor="middle">Evaluation harness</text><text class="s" x="275" y="509" text-anchor="middle">retrieval metrics · ALCE citation P/R · faithfulness · ablations · fault injection · HTML report</text></g>
+    <path class="ln" d="M895 360 V460" marker-end="url(#ah)"/><path class="ln" d="M895 432 H660 V460" marker-end="url(#ah)"/>
+  </svg>
+  </div>
+  <div class="legend"><span style="--sw:var(--c-ret)">Retrieval</span><span style="--sw:var(--c-gen)">Generation</span><span style="--sw:var(--c-ver)">Verification &amp; correction</span><span style="--sw:var(--c-ops)">I/O &amp; operations</span><span style="--sw:var(--bad)">Abstention</span></div>
+</section>
+
+<!-- ============================================================ STAGES -->
+<section id="stages">
+  <h2><span class="n">04</span>Stage by stage: what each part does, and why</h2>
+  <p class="sub">Each design choice is tied to a finding from your review or report, and to the file that implements it.</p>
+
+  <h3>1 · Ingestion and chunking <span class="pill p-ret">trustrag/ingest/</span></h3>
+  <p>Loads <code>.md/.txt</code> (with optional front matter for title/year/url), <code>.pdf</code> (PyMuPDF or pypdf), <code>.docx</code> and <code>.jsonl</code>. The chunker groups whole sentences up to about 120 words with a one-sentence overlap and assigns stable IDs like <code>padma_bridge::c0</code>. Chunks never split a sentence, because a claim whose evidence is cut across two chunks is a common source of "silent" citation failures (review, error type 5).</p>
+
+  <h3>2 · Hybrid retrieval <span class="pill p-ret">trustrag/retrieval/hybrid.py</span></h3>
+  <p>BM25 finds exact names, numbers and rare terms. Dense embeddings (BGE in full mode) find paraphrases. Their ranked lists are merged with Reciprocal Rank Fusion: <code>score(d) = Σ 1/(60 + rank)</code>. RRF needs no score normalization and is robust when either retriever fails. This implements the "hybrid lexical-semantic matching" from your report (§2.1.10) and the sparse + dense combination in the review (RQ3).</p>
+
+  <h3>3 · Reranking <span class="pill p-ret">trustrag/retrieval/reranker.py</span></h3>
+  <p>A cross-encoder (<code>BAAI/bge-reranker-base</code>) reads the query and passage together and outputs a relevance probability. That probability reorders the candidates and also feeds the gate. In lite mode, an IDF-weighted query-coverage + cosine + bigram score stands in.</p>
+
+  <h3>4 · Retrieval gate and corrective fallback <span class="pill p-ret">trustrag/retrieval/gate.py</span></h3>
+  <p>Inspired by CRAG. If the best relevance ≥ <code>upper</code>, the evidence is <b>correct</b>. Below <code>lower</code> it is <b>incorrect</b>; in between it is <b>ambiguous</b>. For ambiguous or incorrect evidence, the gate rewrites the query (with the LLM, or by pseudo-relevance feedback offline), widens the pool, optionally searches Semantic Scholar or DuckDuckGo, and reranks against the <em>original</em> question. If the evidence is still incorrect, the system <b>abstains</b> rather than letting the LLM answer from parametric memory, which is the root cause of post-hoc rationalized citations (review: up to 57%).</p>
+  <p><b>Entity-coverage check (new).</b> Names, acronyms and numbers in the question must appear in the retrieved passages. Multi-word names must appear close together. "How long is the Jamuna Bridge?" retrieves passages about the Padma Bridge and the Jamuna river, but no passage mentions "Jamuna … Bridge", so the gate refuses instead of answering about the wrong bridge. This check costs no model calls.</p>
+
+  <h3>5 · Citation-enforced generation <span class="pill p-gen">trustrag/generation/</span></h3>
+  <p>The prompt numbers the sources <code>[S1]…[Sk]</code> and requires a citation at the end of every sentence. It forbids citing unlisted labels and outside knowledge, and offers the exact token <code>INSUFFICIENT_EVIDENCE</code> as a legitimate way out ("active grounding" in the review). Temperature is 0. One HTTP client speaks the OpenAI chat protocol, so Groq, OpenAI, Gemini, Ollama, LM Studio and vLLM all work by changing two config lines.</p>
+
+  <h3>6 · Claim extraction <span class="pill p-ver">trustrag/verification/claims.py</span></h3>
+  <p>Splits the answer into sentence-level claims (the ALCE unit) and parses <code>[S1]</code>, <code>[1]</code>, <code>[S1, S3]</code> and <code>[S1][S2]</code>. Citations placed after the full stop are re-attached to the right sentence. Labels that don't exist in the context are flagged as <b>ghost citations</b> (fabricated attribution, error type 1).</p>
+
+  <h3>7 · NLI verification <span class="pill p-ver">trustrag/verification/verifier.py</span></h3>
+  <p>For each claim and each passage, the claim is tested against every 1-, 2- and 3-sentence window. Each claim gets one of four verdicts:</p>
+  <div class="tbl"><table>
+    <tr><th>Verdict</th><th>Rule</th><th>Error type it catches</th></tr>
+    <tr><td class="good">supported</td><td>a <em>cited</em> passage entails the claim (or the cited windows do jointly)</td><td>none</td></tr>
+    <tr><td style="color:var(--warn);font-weight:600">misattributed</td><td>the cited passages don't entail it, but another retrieved passage does</td><td>evidence mismatch / wrong citation / ghost citation</td></tr>
+    <tr><td class="bad">contradicted</td><td>contradiction ≥ τc, or the wording matches but a number or code differs</td><td>contradictory generation / numeric distortion</td></tr>
+    <tr><td class="bad">unsupported</td><td>nothing retrieved entails it</td><td>hallucination / post-hoc rationalization</td></tr>
+  </table></div>
+  <p><b>Numeric &amp; identifier guard.</b> Every number (<code>8,611</code>, <code>6.15</code>, <code>2022</code>) and alphanumeric code (<code>BM25</code>, <code>K2</code>, <code>T5</code>) in the claim must literally appear in the evidence window. NLI models are known to miss small numeric perturbations (review, NLI limitations), and this rule catches them for free.</p>
+
+  <h3>8 · Correction <span class="pill p-ver">trustrag/verification/corrector.py</span></h3>
+  <ul>
+    <li><b>Ghost citation</b> → removed, and the claim is re-cited if a passage supports it.</li>
+    <li><b>Supported but over-cited</b> → citations that add no support are pruned, which raises citation precision.</li>
+    <li><b>Misattributed</b> → re-cited to the passage(s) that entail it (up to 2), the CiteFix idea with NLI instead of similarity.</li>
+    <li><b>Unsupported / contradicted</b> → the LLM rewrites the sentence using only the top-2 evidence passages, and the rewrite is <em>re-verified</em> (VeriCite-style). If it still fails, or no generative LLM is available, the sentence is removed.</li>
+  </ul>
+
+  <h3>9 · Answer policy <span class="pill p-ver">corrector.apply_policy</span></h3>
+  <p>HALT-RAG style. No surviving claims → <b>abstained</b>. Fewer than 50% surviving → <b>partial</b>, with a visible note. Otherwise → <b>answered</b>. A confidence score = mean entailment of kept claims × kept ratio.</p>
+
+  <h3>10 · Logging, evaluation, interfaces <span class="pill p-ops">logging_db.py · evaluation/ · app/</span></h3>
+  <p>Every run is stored in SQLite (query, answer, verdicts, timings). The evaluation harness compares systems, runs ablations and fault injection, and writes a self-contained HTML report. A Flask server provides a REST API and a web UI where citations are clickable and each claim's verdict is visible.</p>
+</section>
+
+<!-- ============================================================ MODULES -->
+<section id="modules">
+  <h2><span class="n">05</span>Module map: which file does which job</h2>
+  <div class="tbl"><table>
+    <tr><th>File</th><th>Responsibility</th></tr>
+    <tr><td><code>trustrag/config.py</code></td><td>Loads YAML config over defaults; any key can be overridden by <code>TRUSTRAG__SECTION__KEY</code> env vars.</td></tr>
+    <tr><td><code>trustrag/schemas.py</code></td><td>Data classes shared by all stages: Document, Chunk, Passage, Claim, ClaimVerdict, PipelineResult.</td></tr>
+    <tr><td><code>trustrag/text.py</code></td><td>Tokenizer, light stemmer, sentence splitter (abbreviation-safe), number extraction, negation detection.</td></tr>
+    <tr><td><code>trustrag/ingest/loaders.py</code></td><td>Reads md/txt/pdf/docx/jsonl into Documents (front-matter metadata).</td></tr>
+    <tr><td><code>trustrag/ingest/chunker.py</code></td><td>Sentence-aware chunks with overlap and stable IDs.</td></tr>
+    <tr><td><code>trustrag/index/bm25.py</code></td><td>Okapi BM25 with an inverted index (numpy only).</td></tr>
+    <tr><td><code>trustrag/index/embeddings.py</code></td><td>SentenceTransformer embedder (BGE/E5 with correct query prefixes) and an offline LSA embedder.</td></tr>
+    <tr><td><code>trustrag/index/store.py</code></td><td>Builds, saves and loads the index (chunks.jsonl, vectors.npy, bm25.pkl, meta.json); FAISS above 20k chunks.</td></tr>
+    <tr><td><code>trustrag/retrieval/hybrid.py</code></td><td>BM25 + dense search, RRF fusion.</td></tr>
+    <tr><td><code>trustrag/retrieval/reranker.py</code></td><td>Cross-encoder or lexical reranker producing relevance probabilities.</td></tr>
+    <tr><td><code>trustrag/retrieval/gate.py</code></td><td>CRAG-style decision, entity-coverage check, query rewrite / PRF expansion.</td></tr>
+    <tr><td><code>trustrag/retrieval/web.py</code></td><td>Optional Semantic Scholar / DuckDuckGo fallback (sends only the query).</td></tr>
+    <tr><td><code>trustrag/generation/llm.py</code></td><td>OpenAI-compatible client (Groq, OpenAI, Gemini, Ollama…) with retries; offline extractive LLM.</td></tr>
+    <tr><td><code>trustrag/generation/prompts.py</code></td><td>Citation-enforced generation prompt, naive baseline prompt, claim-rewrite prompt.</td></tr>
+    <tr><td><code>trustrag/verification/claims.py</code></td><td>Answer → claims, citation parsing, ghost detection, rendering.</td></tr>
+    <tr><td><code>trustrag/verification/nli.py</code></td><td>Transformers NLI (DeBERTa) and lexical NLI backends.</td></tr>
+    <tr><td><code>trustrag/verification/verifier.py</code></td><td>Window-level verification, multi-source support, numeric guard, verdict labels.</td></tr>
+    <tr><td><code>trustrag/verification/corrector.py</code></td><td>Re-cite, prune, rewrite-and-reverify, remove; answer policy.</td></tr>
+    <tr><td><code>trustrag/pipeline.py</code></td><td>Orchestrates all stages, timings, logging; defines the system presets (naive, trustrag, ablations).</td></tr>
+    <tr><td><code>trustrag/logging_db.py</code></td><td>SQLite audit log.</td></tr>
+    <tr><td><code>trustrag/evaluation/metrics.py</code></td><td>Retrieval, answer, grounding and ALCE citation metrics.</td></tr>
+    <tr><td><code>trustrag/evaluation/datasets.py</code></td><td>Loaders: demo, your own jsonl, RAGBench, HotpotQA, ALCE-ASQA (pooled corpora).</td></tr>
+    <tr><td><code>trustrag/evaluation/runner.py</code></td><td>Retrieval comparison, system comparison, multi-seed fault injection, CSV/JSON output.</td></tr>
+    <tr><td><code>trustrag/evaluation/faults.py</code></td><td>Injects known citation and hallucination errors and scores detection and repair.</td></tr>
+    <tr><td><code>trustrag/evaluation/report.py</code></td><td>Charts and a self-contained <code>report.html</code>.</td></tr>
+    <tr><td><code>trustrag/cli.py</code></td><td><code>ingest · ask · eval · serve · logs</code> commands.</td></tr>
+    <tr><td><code>app/server.py</code>, <code>app/static/index.html</code></td><td>Flask REST API and web UI.</td></tr>
+    <tr><td><code>scripts/mock_llm_server.py</code></td><td>A deliberately unreliable OpenAI-compatible LLM for testing correction without API keys.</td></tr>
+    <tr><td><code>scripts/run_all.sh</code> / <code>.bat</code></td><td>One-command ingest → tests → benchmark → report.</td></tr>
+    <tr><td><code>tests/test_trustrag.py</code></td><td>29 unit and integration tests.</td></tr>
+    <tr><td><code>data/demo/</code></td><td>20-document demo corpus (with hard negatives) and 50 questions (8 unanswerable).</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================================================ TOOLS -->
+<section id="tools">
+  <h2><span class="n">06</span>Tools and models</h2>
+  <p class="sub">Every model sits behind an interface with two backends. Lite runs anywhere with numpy + scikit-learn; full is what you report in the thesis.</p>
+  <div class="tbl"><table>
+    <tr><th>Role</th><th>Full mode (config/full.yaml)</th><th>Lite mode (config/lite.yaml)</th></tr>
+    <tr><td>Embeddings</td><td><code>BAAI/bge-base-en-v1.5</code> via sentence-transformers (bge-large optional)</td><td>TF-IDF word + char n-grams → truncated SVD (LSA), scikit-learn</td></tr>
+    <tr><td>Lexical retrieval</td><td colspan="2">Okapi BM25 (own implementation, k1 = 1.5, b = 0.75)</td></tr>
+    <tr><td>Vector index</td><td colspan="2">numpy exact cosine; FAISS <code>IndexFlatIP</code> automatically above 20k chunks</td></tr>
+    <tr><td>Reranker</td><td><code>BAAI/bge-reranker-base</code> cross-encoder</td><td>IDF-weighted coverage + cosine + bigram overlap</td></tr>
+    <tr><td>LLM</td><td>Groq <code>llama-3.3-70b-versatile</code> (or OpenAI, Gemini, Ollama <code>llama3.1:8b</code>…)</td><td>Extractive stand-in (copies the best evidence sentences with citations)</td></tr>
+    <tr><td>NLI verifier</td><td><code>MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli</code></td><td>Lexical coverage + negation-mismatch heuristic</td></tr>
+    <tr><td>Judge NLI (evaluation)</td><td><code>cross-encoder/nli-deberta-v3-base</code>, a <em>different</em> model to avoid self-grading</td><td>same lexical NLI (results are optimistic)</td></tr>
+    <tr><td>External fallback</td><td colspan="2">Semantic Scholar Graph API or DuckDuckGo (<code>ddgs</code>); off by default</td></tr>
+    <tr><td>Storage / logs</td><td colspan="2">index on disk (jsonl + npy + pickle), SQLite audit log</td></tr>
+    <tr><td>Serving</td><td colspan="2">Flask REST API + HTML/JS UI</td></tr>
+    <tr><td>Evaluation data</td><td colspan="2">HuggingFace <code>datasets</code>: RAGBench (<code>galileo-ai/ragbench</code>), HotpotQA distractor; ALCE ASQA json; built-in demo</td></tr>
+    <tr><td>Charts / tests</td><td colspan="2">matplotlib; Python <code>unittest</code> (pytest-compatible)</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================================================ METRICS -->
+<section id="metrics">
+  <h2><span class="n">07</span>Performance metrics</h2>
+  <p class="sub">The report covers all four evaluation families from the review (RQ4): retrieval, answer quality, grounding/citations, and behaviour and cost.</p>
+  <div class="tbl"><table>
+    <tr><th>Metric</th><th>Definition</th><th>Needs labels?</th></tr>
+    <tr><td>Recall@k, Precision@k, Hit@k</td><td>gold documents found in the top-k retrieved (document level)</td><td>gold doc IDs</td></tr>
+    <tr><td>MRR, nDCG@k</td><td>rank quality of the first and all relevant documents</td><td>gold doc IDs</td></tr>
+    <tr><td>Faithfulness</td><td>fraction of answer sentences entailed by ≥ 1 retrieved passage (judge NLI)</td><td>no</td></tr>
+    <tr><td>Hallucination rate</td><td>1 − faithfulness</td><td>no</td></tr>
+    <tr><td>Citation recall (ALCE)</td><td>fraction of sentences whose <em>cited</em> passages jointly entail them</td><td>no</td></tr>
+    <tr><td>Citation precision (ALCE)</td><td>fraction of citations that are needed: the citation entails the claim alone, or removing it breaks support</td><td>no</td></tr>
+    <tr><td>Citation F1</td><td>harmonic mean of citation precision and recall</td><td>no</td></tr>
+    <tr><td>Ghost-citation rate</td><td>citations pointing to sources that were not provided</td><td>no</td></tr>
+    <tr><td>Uncited-claim rate</td><td>sentences with no valid citation</td><td>no</td></tr>
+    <tr><td>Answer relevance</td><td>cosine(query, answer) embedding similarity</td><td>no</td></tr>
+    <tr><td>Answer EM (contains), token F1, ROUGE-L</td><td>overlap with the reference / short answers</td><td>reference answers</td></tr>
+    <tr><td>Correct abstention / false abstention</td><td>refusals on unanswerable vs answerable questions</td><td>answerable flag</td></tr>
+    <tr><td>Latency mean / p90, per stage</td><td>retrieve, rerank, gate, generate, verify, correct (ms)</td><td>no</td></tr>
+    <tr><td>Fault-injection detection / fix rate</td><td>share of injected errors (by type) flagged and repaired; false removals of clean claims</td><td>generated automatically</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================================================ RESULTS -->
+<section id="results">
+  <h2><span class="n">08</span>Results from this build</h2>
+  <p class="sub">All runs below were produced in the offline workspace. The raw files are in <code>results/</code> (summary.json, per_question.csv, fault_records.csv, report.html).</p>
+
+  <h3>A · Controlled fault injection (the strongest evidence here)</h3>
+  <p>Answers whose sentences the judge confirms as supported were corrupted with <b>known</b> errors from the review's taxonomy, then passed through each system. Because the ground truth is known, this measures the verification and correction layer directly. 1,284 claims, pooled over 10 random seeds.</p>
+  <figure><img src="data:image/png;base64,{{IMG_FAULTS}}" alt="Bar chart: share of injected errors detected and fixed by TrustRAG, by error type"><figcaption>Detection and repair by error type. Negation is the weakest case for the offline lexical NLI; DeBERTa handles negation much better.</figcaption></figure>
+  <div class="tbl"><table>
+    <tr><th>Injected error</th><th class="num">Claims</th><th class="num">Detected</th><th class="num">Fixed</th></tr>
+    <tr><td>Wrong citation</td><td class="num">178</td><td class="num">100%</td><td class="num">100%</td></tr>
+    <tr><td>Ghost citation</td><td class="num">178</td><td class="num">100%</td><td class="num">100%</td></tr>
+    <tr><td>Numeric distortion</td><td class="num">58</td><td class="num">100%</td><td class="num">100%</td></tr>
+    <tr><td>Negation (meaning flipped)</td><td class="num">105</td><td class="num">81.0%</td><td class="num">76.2%</td></tr>
+    <tr><td>Fabricated sentence (from an unretrieved doc)</td><td class="num">184</td><td class="num">100%</td><td class="num">100%</td></tr>
+    <tr><td>Clean claims (should be kept)</td><td class="num">581</td><td class="num">–</td><td class="num">0% wrongly removed</td></tr>
+  </table></div>
+  <div class="tbl"><table>
+    <tr><th>Outcome</th><th class="num">Naive RAG</th><th class="num">TrustRAG v2</th></tr>
+    <tr><td>Hallucinated claims in the delivered answer</td><td class="num bad">27.0%</td><td class="num good">2.6%</td></tr>
+    <tr><td>Delivered claims with a correct citation</td><td class="num bad">45.2%</td><td class="num good">100%</td></tr>
+    <tr><td>Error detection recall</td><td class="num">0%</td><td class="num good">97.2%</td></tr>
+  </table></div>
+
+  <h3>B · End-to-end with an unreliable LLM</h3>
+  <p><code>scripts/mock_llm_server.py</code> acts as an LLM that, in every answer, swaps one citation, distorts a number or adds a ghost citation, and adds an invented sentence ("…99 percent success rate"). It also exercises the real HTTP client and the rewrite path. Demo set, 50 questions.</p>
+  <figure><img src="data:image/png;base64,{{IMG_MOCK}}" alt="Grouped bar chart comparing naive, TrustRAG, no-correction and no-gate systems on faithfulness, citation precision, citation recall, citation F1 and answer relevance"><figcaption>naive / trustrag / no_correction / no_gate with the hallucinating mock LLM.</figcaption></figure>
+  <div class="tbl"><table>
+    <tr><th>Metric</th><th class="num">Naive RAG</th><th class="num">TrustRAG v2</th><th class="num">− correction</th><th class="num">− gate</th></tr>
+    <tr><td>Faithfulness ↑</td><td class="num">0.681</td><td class="num good">1.000</td><td class="num">0.681</td><td class="num">1.000</td></tr>
+    <tr><td>Citation precision ↑</td><td class="num">0.294</td><td class="num good">1.000</td><td class="num">0.323</td><td class="num">1.000</td></tr>
+    <tr><td>Citation recall ↑</td><td class="num">0.294</td><td class="num good">1.000</td><td class="num">0.323</td><td class="num">1.000</td></tr>
+    <tr><td>Ghost-citation rate ↓</td><td class="num">0.185</td><td class="num good">0.000</td><td class="num">0.185</td><td class="num">0.000</td></tr>
+    <tr><td>Answer contains gold answer ↑</td><td class="num">0.857</td><td class="num good">0.905</td><td class="num">0.857</td><td class="num">0.905</td></tr>
+    <tr><td>Correct abstention (unanswerable) ↑</td><td class="num">12.5%</td><td class="num good">62.5%</td><td class="num">62.5%</td><td class="num">12.5%</td></tr>
+    <tr><td>Mean latency</td><td class="num">0.07 s</td><td class="num">0.11 s</td><td class="num">0.10 s</td><td class="num">0.10 s</td></tr>
+  </table></div>
+  <p>The ablations isolate each component's job. Removing <b>correction</b> brings back every hallucination and citation error. Removing the <b>gate</b> keeps citations clean but lets unanswerable questions through (12.5% refused instead of 62.5%).</p>
+  <div class="note"><b>Why TrustRAG scores a "perfect" 1.000 here</b>In this run, the judge is the same lexical NLI that the verifier uses, so TrustRAG is partly grading its own work, which is the circularity problem your review describes (RQ7). The ablation <em>pattern</em> is meaningful; the absolute 1.000 is not. In full mode, the judge is a different DeBERTa model, and you should expect lower numbers.</div>
+
+  <h3>C · Retrieval and real-extractive run</h3>
+  <p>With the extractive stand-in (which never hallucinates), every system scores 1.0 on grounding. The difference shows in abstention: 12.5% → 62.5% correct refusals, with 0 false refusals. On the small demo corpus, all retrievers reach Recall@5 = 1.0 (BM25 Recall@1 0.964, hybrid 0.988), so retrieval differences must be measured on the larger pooled corpora below. Mean overhead of verification + correction: about 10 ms per question in lite mode. With DeBERTa on CPU, expect roughly 0.3–1.5 s, comparable to HALT-RAG's reported +0.9 s.</p>
+</section>
+
+<!-- ============================================================ RUN -->
+<section id="run">
+  <h2><span class="n">09</span>How to run the whole project</h2>
+  <h3>Step 0 · Setup (Python 3.10+)</h3>
+<pre><code><span class="cmt"># unzip TrustRAG-v2.zip, then inside the folder:</span>
+python -m venv .venv
+<span class="cmt"># Windows:</span>  .venv\Scripts\activate        <span class="cmt"># Linux/macOS:</span>  source .venv/bin/activate
+pip install -r requirements-lite.txt          <span class="cmt"># offline mode only (small)</span>
+pip install -r requirements.txt               <span class="cmt"># full mode: torch, transformers, sentence-transformers, datasets</span></code></pre>
+
+  <h3>Step 1 · Lite mode: everything offline in about 2 minutes</h3>
+<pre><code>python -m trustrag.cli --config config/lite.yaml ingest --input data/demo/corpus
+python -m trustrag.cli --config config/lite.yaml ask "How long is the Padma Bridge?"
+python -m trustrag.cli --config config/lite.yaml ask "How many parameters does GPT-3 have?"   <span class="cmt"># should abstain</span>
+python -m trustrag.cli --config config/lite.yaml eval --dataset demo --out results/demo_lite
+<span class="cmt"># or all of the above + tests:</span>   scripts/run_all.sh     <span class="cmt">(Windows: scripts\run_all.bat)</span></code></pre>
+
+  <h3>Step 2 · Full mode with a real LLM</h3>
+<pre><code>copy .env.example .env          <span class="cmt"># (Linux: cp) then put your NEW key: GROQ_API_KEY=gsk_...</span>
+python -m trustrag.cli --config config/full.yaml ingest --input data/demo/corpus
+python -m trustrag.cli --config config/full.yaml ask "Who first climbed K2 and when?"</code></pre>
+  <p>The first run downloads BGE, bge-reranker and DeBERTa (about 1.5 GB). If you have a GPU, set <code>device: cuda</code> in <code>config/full.yaml</code>. <b>Free local alternative:</b> install Ollama, run <code>ollama pull llama3.1:8b</code>, then set <code>llm.provider: ollama</code> and <code>llm.model: llama3.1:8b</code>. No key is needed.</p>
+
+  <h3>Step 3 · Your own documents</h3>
+<pre><code><span class="cmt"># a folder of PDFs / DOCX / MD / TXT, or a .jsonl with {"doc_id","title","text","year","url"} per line</span>
+python -m trustrag.cli --config config/full.yaml ingest --input path/to/papers --index indexes/mypapers
+<span class="cmt"># point index_dir in the config to indexes/mypapers (or TRUSTRAG__INDEX_DIR=indexes/mypapers) and ask away</span></code></pre>
+
+  <h3>Step 4 · Web UI and REST API</h3>
+<pre><code>python -m trustrag.cli --config config/lite.yaml serve --port 8000     <span class="cmt"># open http://127.0.0.1:8000</span>
+
+curl -X POST http://127.0.0.1:8000/api/ask -H "Content-Type: application/json" \
+     -d "{\"question\": \"What does CRAG do when retrieval is judged Incorrect?\", \"system\": \"trustrag\"}"
+<span class="cmt"># other endpoints: GET /api/health · GET /api/logs?n=20 · system can be naive | trustrag | no_correction | ...</span></code></pre>
+  <p>The UI shows the status (answered / partial / abstained), the answer with clickable <code>[S#]</code> chips that highlight the source, a per-claim verification table (verdict, cited → final citation, entailment, action), and the retrieved passages with relevance scores. A selector switches between TrustRAG and the naive baseline for live demos.</p>
+</section>
+
+<!-- ============================================================ TEST -->
+<section id="test">
+  <h2><span class="n">10</span>How to test it</h2>
+  <div class="grid g2">
+    <div class="card"><h4>1 · Unit and integration tests (29)</h4><p><code>python -m unittest discover -s tests -v</code></p><p>Covers chunking, BM25, citation parsing and ghosts, every verdict type, re-citation, rewriting, abstention, the gate's entity check, all metrics, end-to-end runs, index save/load, the Flask API, env overrides, and the real HTTP LLM client against the mock server.</p></div>
+    <div class="card"><h4>2 · Fault-injection test</h4><p><code>... eval --dataset demo --fault-seeds 10</code></p><p>Injects wrong citations, ghost citations, numeric distortions, negations and fabricated sentences, then reports detection and repair by type plus false removals. Per-claim rows are in <code>fault_records.csv</code>.</p></div>
+    <div class="card"><h4>3 · Unreliable-LLM test (no key needed)</h4>
+<pre><code>python scripts/mock_llm_server.py --port 8765
+<span class="cmt"># second terminal (Linux/macOS syntax):</span>
+TRUSTRAG__LLM__PROVIDER=openai_compatible \
+TRUSTRAG__LLM__BASE_URL=http://127.0.0.1:8765/v1 \
+TRUSTRAG__LLM__API_KEY_ENV=MOCK_KEY MOCK_KEY=x \
+python -m trustrag.cli ask "How long is the Padma Bridge?"</code></pre><p>Compare with <code>--system naive</code> to see the raw errors.</p></div>
+    <div class="card"><h4>4 · Manual checks in the UI</h4><p>Ask an answerable question (verified answer), an unanswerable one such as "How long is the Jamuna Bridge?" (abstains), and switch to <em>Naive RAG</em> to show the difference live in your defense.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ EXPERIMENTS -->
+<section id="experiments">
+  <h2><span class="n">11</span>Thesis experiments to run (full mode)</h2>
+  <p class="sub">These produce the numbers you can put in the report and compare against v1 and the literature. Each command writes <code>results/&lt;name&gt;/report.html</code> with charts and tables.</p>
+<pre><code><span class="cmt"># E1 · same benchmark as v1 (v1: faithfulness 0.2925) — pooled corpus of 100 questions, retrieval included</span>
+python -m trustrag.cli --config config/full.yaml eval --dataset ragbench --subset pubmedqa --limit 100 --out results/E1_pubmedqa
+
+<span class="cmt"># E2 · multi-hop retrieval (gold = supporting-fact titles)</span>
+python -m trustrag.cli --config config/full.yaml eval --dataset hotpotqa --limit 200 --out results/E2_hotpotqa
+
+<span class="cmt"># E3 · ALCE ASQA (download asqa_eval_gtr_top100.json from the ALCE repo first)</span>
+python -m trustrag.cli --config config/full.yaml eval --dataset asqa --path data/asqa_eval_gtr_top100.json --limit 200 --out results/E3_asqa
+
+<span class="cmt"># E4 · ablations — pick systems explicitly</span>
+python -m trustrag.cli --config config/full.yaml eval --dataset ragbench --subset covidqa --limit 100 \
+       --systems naive,trustrag,no_correction,no_gate,no_rerank,dense_only,bm25_only --out results/E4_ablation
+
+<span class="cmt"># E5 · your own question set</span>
+python -m trustrag.cli --config config/full.yaml eval --dataset jsonl --qa my_questions.jsonl --corpus my_papers/ --out results/E5_custom</code></pre>
+  <p>Format for <code>my_questions.jsonl</code>: <code>{"id":"q1","question":"…","answers":["short answer"],"gold_doc_ids":["doc_a"],"answerable":true}</code>. Add some unanswerable questions (<code>"answerable": false</code>) to measure abstention.</p>
+  <div class="note info"><b>Tips for a fair comparison</b>Keep the same LLM for naive and TrustRAG. Use an independent judge (already set in <code>full.yaml</code>). Report the mean ± spread over 3 runs with different <code>--fault-seeds</code>. Hand-label 50 answers to validate the judge, since the review warns that automatic judges need calibration against human labels (ARES).</div>
+  <p><b>Suggested results table for the report:</b> rows = naive, TrustRAG v1 (old numbers), TrustRAG v2, and each ablation. Columns = Recall@5, MRR, faithfulness, citation P/R/F1, ghost-citation rate, correct abstention, false abstention, latency p90. Then add the fault-injection table and the retrieval chart.</p>
+</section>
+
+<!-- ============================================================ CONFIG -->
+<section id="config">
+  <h2><span class="n">12</span>Configuration reference</h2>
+  <p class="sub">Defaults live in <code>trustrag/config.py</code>; <code>config/lite.yaml</code> and <code>config/full.yaml</code> override them. Any key can also be set from the environment, e.g. <code>TRUSTRAG__RETRIEVAL__FINAL_K=8</code>.</p>
+  <div class="tbl"><table>
+    <tr><th>Key</th><th>Default</th><th>Meaning</th></tr>
+    <tr><td><code>chunking.max_words / overlap_sentences</code></td><td class="num">120 / 1</td><td>chunk size and overlap</td></tr>
+    <tr><td><code>retrieval.candidates_per_retriever</code></td><td class="num">30</td><td>top-N from BM25 and from dense before fusion</td></tr>
+    <tr><td><code>retrieval.final_k</code></td><td class="num">5</td><td>passages given to the LLM</td></tr>
+    <tr><td><code>retrieval.use_bm25 / use_dense</code></td><td>true / true</td><td>switch retrievers (ablations)</td></tr>
+    <tr><td><code>reranker.backend / model / top_n</code></td><td>cross-encoder / bge-reranker-base / 20</td><td>second-stage ranking</td></tr>
+    <tr><td><code>retrieval_gate.upper / lower</code></td><td class="num">0.50 / 0.05 (full)</td><td>CORRECT / INCORRECT thresholds on reranker probability; tune on a dev set</td></tr>
+    <tr><td><code>retrieval_gate.entity_check</code></td><td>true</td><td>abstain when question names/numbers are missing from the evidence</td></tr>
+    <tr><td><code>retrieval_gate.abstain_if_incorrect</code></td><td>true</td><td>refuse instead of answering from memory</td></tr>
+    <tr><td><code>web_fallback.enabled / provider</code></td><td>false / semantic_scholar</td><td>external search fallback</td></tr>
+    <tr><td><code>llm.provider / model / base_url / api_key_env</code></td><td>groq / llama-3.3-70b-versatile</td><td>any OpenAI-compatible endpoint</td></tr>
+    <tr><td><code>nli.model / window_sizes</code></td><td>DeBERTa-v3-base-mnli-fever-anli / [1,2,3]</td><td>verifier model and evidence windows</td></tr>
+    <tr><td><code>verification.entail_threshold</code></td><td class="num">0.5</td><td>τe: entailment needed for "supported"</td></tr>
+    <tr><td><code>verification.contradiction_threshold</code></td><td class="num">0.6</td><td>τc</td></tr>
+    <tr><td><code>verification.numeric_guard</code></td><td>true</td><td>numbers and codes must literally match the evidence</td></tr>
+    <tr><td><code>correction.recite / prune_citations / regenerate</code></td><td>true / true / true</td><td>individual correction actions</td></tr>
+    <tr><td><code>policy.min_kept_ratio</code></td><td class="num">0.5</td><td>below this → "partial" answer</td></tr>
+    <tr><td><code>evaluation.judge_nli_backend / model</code></td><td>transformers / nli-deberta-v3-base</td><td>independent judge for metrics</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================================================ REQUIREMENTS -->
+<section id="requirements">
+  <h2><span class="n">13</span>Coverage of your report's requirements</h2>
+  <div class="tbl"><table>
+    <tr><th>ID</th><th>Requirement (CSE 400 report, Table 3.1–3.2)</th><th>Where it is implemented</th></tr>
+    <tr><td>FR1</td><td>Accept and process a user query</td><td>CLI <code>ask</code>, <code>POST /api/ask</code>, web UI</td></tr>
+    <tr><td>FR2</td><td>Retrieve from a local vector database</td><td><code>index/store.py</code>, <code>retrieval/hybrid.py</code></td></tr>
+    <tr><td>FR3</td><td>Evaluate relevance of retrieved context</td><td><code>retrieval/reranker.py</code> + <code>retrieval/gate.py</code></td></tr>
+    <tr><td>FR4</td><td>Fallback retrieval when context is weak</td><td>gate: query rewrite → wider pool → web search</td></tr>
+    <tr><td>FR5–FR6</td><td>Generate from approved context with inline citations</td><td><code>generation/prompts.py</code>, <code>generation/llm.py</code></td></tr>
+    <tr><td>FR7</td><td>Verify claims against cited documents</td><td><code>verification/verifier.py</code></td></tr>
+    <tr><td>FR8</td><td>Correct citation mismatches</td><td><code>verification/corrector.py</code></td></tr>
+    <tr><td>FR9</td><td>Adapt to model access type</td><td>black-box: all providers via API with post-hoc verification. White-box context-aware decoding is listed under next steps.</td></tr>
+    <tr><td>FR10</td><td>Store logs, answers, citations, scores</td><td><code>logging_db.py</code> (SQLite), <code>cli logs</code>, <code>/api/logs</code></td></tr>
+    <tr><td>NFR1</td><td>Low latency</td><td>stage timings in every result; lite overhead ≈ 10 ms; full mode is batched NLI on windows</td></tr>
+    <tr><td>NFR2/5</td><td>Modular, replaceable, testable</td><td>one interface per stage; 29 tests</td></tr>
+    <tr><td>NFR3</td><td>Accurate attribution</td><td>cited-source verification + correction</td></tr>
+    <tr><td>NFR4</td><td>No local data leaks to external APIs</td><td><code>retrieval/web.py</code> sends only the query; web fallback is off by default</td></tr>
+    <tr><td>NFR6</td><td>Readable output with citations near claims</td><td>one citation group per sentence; UI chips</td></tr>
+    <tr><td>NFR7</td><td>Open-weight and proprietary LLMs</td><td>Ollama / vLLM / LM Studio and Groq / OpenAI / Gemini</td></tr>
+    <tr><td>NFR8</td><td>Traceability</td><td>claim → evidence window → passage → document id, all logged</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================================================ LIMITS -->
+<section id="limits">
+  <h2><span class="n">14</span>Limitations and next steps</h2>
+  <ul>
+    <li><b>Not yet measured in full mode.</b> All numbers in this guide are from lite mode or a simulated LLM. Run E1–E5 before claiming improvements in the thesis.</li>
+    <li><b>Correctness ≠ faithfulness.</b> NLI shows that a passage <em>supports</em> a claim, not that the model <em>used</em> it (review RQ7). Mechanistic probing (FACTUM) needs white-box access.</li>
+    <li><b>Entity check can over-refuse</b> when the question uses a different name than the documents (e.g. "USA" vs "United States"). Turn it off with <code>retrieval_gate.entity_check: false</code>, or add aliases to your corpus.</li>
+    <li><b>Gate thresholds are model-specific.</b> Tune <code>upper/lower</code> on 30–50 dev questions whenever you change the reranker.</li>
+    <li><b>Sentence-level claims.</b> A long sentence with two facts is one claim. LLM-based atomic decomposition is an easy extension inside <code>claims.py</code>.</li>
+    <li><b>Lexical NLI (lite)</b> is weak on negation and paraphrase. It exists only for offline testing; use DeBERTa for results.</li>
+    <li><b>Next steps:</b> context-aware decoding for white-box models (FR9), LLM-based claim decomposition, isotonic calibration of NLI scores on labeled data, temporal-freshness metadata for stale evidence (error type 7), and a Zotero/BibTeX export of verified citations (the workflow-integration gap from the review).</li>
+  </ul>
+  <div class="note danger"><b>Security reminder</b>The uploaded zip contained live API keys in <code>.env</code>. Revoke and regenerate the Groq, Google and Semantic Scholar keys, and never commit <code>.env</code>.</div>
+</section>
+
+</main>
+<footer><div class="wrap">TrustRAG v2 · Generated {{DATE}} · Code: <code>TrustRAG-v2/</code> · Benchmark reports: <code>results/demo_lite/report.html</code>, <code>results/demo_mock_llm/report.html</code></div></footer>
+</body>
+</html>

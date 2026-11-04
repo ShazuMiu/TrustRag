@@ -1,0 +1,10 @@
+-r requirements-lite.txt
+torch>=2.1
+transformers>=4.40
+sentence-transformers>=3.0
+datasets>=2.19
+pymupdf>=1.24
+python-docx>=1.1
+# optional
+# faiss-cpu>=1.8          # only needed for >20k chunks
+# ddgs>=6.0               # DuckDuckGo web fallback

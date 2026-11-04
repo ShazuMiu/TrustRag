@@ -1,0 +1,50 @@
+{"id": "q01", "question": "Which organization introduced Retrieval-Augmented Generation in 2020?", "answers": ["Facebook AI Research"], "reference": "Facebook AI Research", "gold_doc_ids": ["rag"], "answerable": true}
+{"id": "q02", "question": "What generator model does the original RAG paper use?", "answers": ["BART"], "reference": "BART", "gold_doc_ids": ["rag"], "answerable": true}
+{"id": "q03", "question": "How many passages are in the Wikipedia index used by RAG?", "answers": ["21 million"], "reference": "21 million", "gold_doc_ids": ["rag"], "answerable": true}
+{"id": "q04", "question": "What is the difference between RAG-Sequence and RAG-Token?", "answers": ["different passage for each generated token"], "reference": "different passage for each generated token", "gold_doc_ids": ["rag"], "answerable": true}
+{"id": "q05", "question": "What value is the BM25 parameter b commonly set to?", "answers": ["0.75"], "reference": "0.75", "gold_doc_ids": ["bm25"], "answerable": true}
+{"id": "q06", "question": "In what range is the BM25 parameter k1 usually chosen?", "answers": ["1.2 and 2.0"], "reference": "1.2 and 2.0", "gold_doc_ids": ["bm25"], "answerable": true}
+{"id": "q07", "question": "Where was the Okapi information retrieval system implemented?", "answers": ["City University London"], "reference": "City University London", "gold_doc_ids": ["bm25"], "answerable": true}
+{"id": "q08", "question": "Why do modern search systems combine BM25 with dense retrieval?", "answers": ["cannot match synonyms or paraphrases"], "reference": "cannot match synonyms or paraphrases", "gold_doc_ids": ["bm25"], "answerable": true}
+{"id": "q09", "question": "How many layers are in the encoder of the original Transformer?", "answers": ["6"], "reference": "6", "gold_doc_ids": ["transformer"], "answerable": true}
+{"id": "q10", "question": "What BLEU score did the big Transformer reach on WMT 2014 English-to-German?", "answers": ["28.4"], "reference": "28.4", "gold_doc_ids": ["transformer"], "answerable": true}
+{"id": "q11", "question": "How long was the big Transformer model trained and on what hardware?", "answers": ["3.5 days"], "reference": "3.5 days", "gold_doc_ids": ["transformer"], "answerable": true}
+{"id": "q12", "question": "How many attention heads does the base Transformer model use?", "answers": ["8"], "reference": "8", "gold_doc_ids": ["transformer"], "answerable": true}
+{"id": "q13", "question": "What percentage of input tokens does BERT select for masked language modeling?", "answers": ["15 percent"], "reference": "15 percent", "gold_doc_ids": ["bert"], "answerable": true}
+{"id": "q14", "question": "How many parameters does BERT-Large have?", "answers": ["340 million"], "reference": "340 million", "gold_doc_ids": ["bert"], "answerable": true}
+{"id": "q15", "question": "What data was BERT pre-trained on?", "answers": ["BooksCorpus", "Wikipedia"], "reference": "BooksCorpus; Wikipedia", "gold_doc_ids": ["bert"], "answerable": true}
+{"id": "q16", "question": "What does FAISS product quantization do?", "answers": ["compresses vectors into short codes"], "reference": "compresses vectors into short codes", "gold_doc_ids": ["faiss"], "answerable": true}
+{"id": "q17", "question": "In which year did Facebook AI Research release FAISS?", "answers": ["2017"], "reference": "2017", "gold_doc_ids": ["faiss"], "answerable": true}
+{"id": "q18", "question": "How many sentence pairs does the SNLI corpus contain?", "answers": ["570,000"], "reference": "570,000", "gold_doc_ids": ["nli"], "answerable": true}
+{"id": "q19", "question": "What are the three labels used in natural language inference?", "answers": ["entailment", "contradiction", "neutral"], "reference": "entailment; contradiction; neutral", "gold_doc_ids": ["nli"], "answerable": true}
+{"id": "q20", "question": "How many sentence pairs are in MultiNLI?", "answers": ["433,000"], "reference": "433,000", "gold_doc_ids": ["nli"], "answerable": true}
+{"id": "q21", "question": "What does the ISSUP reflection token in Self-RAG judge?", "answers": ["supported by the passage"], "reference": "supported by the passage", "gold_doc_ids": ["selfrag"], "answerable": true}
+{"id": "q22", "question": "Which base models were used to train Self-RAG?", "answers": ["Llama 2"], "reference": "Llama 2", "gold_doc_ids": ["selfrag"], "answerable": true}
+{"id": "q23", "question": "What model is the CRAG retrieval evaluator fine-tuned from?", "answers": ["T5-large"], "reference": "T5-large", "gold_doc_ids": ["crag"], "answerable": true}
+{"id": "q24", "question": "What does CRAG do when retrieval is judged Incorrect?", "answers": ["web search"], "reference": "web search", "gold_doc_ids": ["crag"], "answerable": true}
+{"id": "q25", "question": "Where do the light-dependent reactions of photosynthesis take place?", "answers": ["thylakoid membranes"], "reference": "thylakoid membranes", "gold_doc_ids": ["photosynthesis"], "answerable": true}
+{"id": "q26", "question": "Where does the oxygen released during photosynthesis come from?", "answers": ["splitting of water"], "reference": "splitting of water", "gold_doc_ids": ["photosynthesis"], "answerable": true}
+{"id": "q27", "question": "Which enzyme fixes carbon dioxide in the Calvin cycle?", "answers": ["RuBisCO"], "reference": "RuBisCO", "gold_doc_ids": ["photosynthesis"], "answerable": true}
+{"id": "q28", "question": "How long is the Padma Bridge?", "answers": ["6.15 kilometres"], "reference": "6.15 kilometres", "gold_doc_ids": ["padma_bridge"], "answerable": true}
+{"id": "q29", "question": "When was the Padma Bridge opened to road traffic?", "answers": ["25 June 2022"], "reference": "25 June 2022", "gold_doc_ids": ["padma_bridge"], "answerable": true}
+{"id": "q30", "question": "Who built the main span of the Padma Bridge?", "answers": ["China Major Bridge Engineering Company"], "reference": "China Major Bridge Engineering Company", "gold_doc_ids": ["padma_bridge"], "answerable": true}
+{"id": "q31", "question": "How was the Padma Bridge project funded?", "answers": ["own resources"], "reference": "own resources", "gold_doc_ids": ["padma_bridge"], "answerable": true}
+{"id": "q32", "question": "What is the officially announced height of Mount Everest?", "answers": ["8,848.86"], "reference": "8,848.86", "gold_doc_ids": ["everest"], "answerable": true}
+{"id": "q33", "question": "Who made the first confirmed ascent of Mount Everest?", "answers": ["Edmund Hillary", "Tenzing Norgay"], "reference": "Edmund Hillary; Tenzing Norgay", "gold_doc_ids": ["everest"], "answerable": true}
+{"id": "q34", "question": "How high is K2?", "answers": ["8,611"], "reference": "8,611", "gold_doc_ids": ["k2"], "answerable": true}
+{"id": "q35", "question": "Who first climbed K2 and when?", "answers": ["Lino Lacedelli", "Achille Compagnoni"], "reference": "Lino Lacedelli; Achille Compagnoni", "gold_doc_ids": ["k2"], "answerable": true}
+{"id": "q36", "question": "Which is taller, Mount Everest or K2, and what are their heights?", "answers": ["8,848.86", "8,611"], "reference": "8,848.86; 8,611", "gold_doc_ids": ["everest", "k2"], "answerable": true}
+{"id": "q37", "question": "What is the difference between intrinsic and extrinsic hallucination?", "answers": ["contradict the source", "cannot be verified"], "reference": "contradict the source; cannot be verified", "gold_doc_ids": ["hallucination"], "answerable": true}
+{"id": "q38", "question": "How many questions does TruthfulQA contain?", "answers": ["817"], "reference": "817", "gold_doc_ids": ["hallucination"], "answerable": true}
+{"id": "q39", "question": "Which model does ALCE use to compute citation recall and precision?", "answers": ["TRUE"], "reference": "TRUE", "gold_doc_ids": ["alce"], "answerable": true}
+{"id": "q40", "question": "Which three datasets is the ALCE benchmark built from?", "answers": ["ASQA", "QAMPARI", "ELI5"], "reference": "ASQA; QAMPARI; ELI5", "gold_doc_ids": ["alce"], "answerable": true}
+{"id": "q41", "question": "How much did CiteFix improve citation accuracy?", "answers": ["15.46 percent"], "reference": "15.46 percent", "gold_doc_ids": ["citefix"], "answerable": true}
+{"id": "q42", "question": "How does CiteFix decide which document supports a factual point?", "answers": ["hybrid lexical-semantic matching"], "reference": "hybrid lexical-semantic matching", "gold_doc_ids": ["citefix"], "answerable": true}
+{"id": "u01", "question": "How long is the Jamuna Bridge in Bangladesh?", "answers": [], "gold_doc_ids": [], "answerable": false}
+{"id": "u02", "question": "When was the first winter ascent of K2?", "answers": [], "gold_doc_ids": [], "answerable": false}
+{"id": "u03", "question": "How many parameters does GPT-3 have?", "answers": [], "gold_doc_ids": [], "answerable": false}
+{"id": "u04", "question": "What BLEU score did the Transformer achieve on English-to-Japanese translation?", "answers": [], "gold_doc_ids": [], "answerable": false}
+{"id": "u05", "question": "Which enzyme fixes nitrogen in the root nodules of legumes?", "answers": [], "gold_doc_ids": [], "answerable": false}
+{"id": "u06", "question": "How many questions are in the HotpotQA dataset?", "answers": [], "gold_doc_ids": [], "answerable": false}
+{"id": "u07", "question": "What is the boiling point of water at the summit of Mount Everest?", "answers": [], "gold_doc_ids": [], "answerable": false}
+{"id": "u08", "question": "Who is the current chief executive of Meta?", "answers": [], "gold_doc_ids": [], "answerable": false}

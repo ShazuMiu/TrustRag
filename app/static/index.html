@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrustRAG Assistant</title>
+<style>
+:root{--bg:#f7f7f5;--card:#ffffff;--ink:#16161a;--ink2:#5b5a56;--line:#e4e3de;--accent:#2a78d6;
+--ok:#0f7b4a;--okbg:#e3f4ea;--warn:#946200;--warnbg:#fbf0d6;--bad:#b42828;--badbg:#fbe3e3;--chip:#eef3fb}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#1d1d1b;--ink:#efeee9;--ink2:#a9a8a0;--line:#33322e;
+--accent:#5b9cf0;--ok:#5fd09a;--okbg:#17352a;--warn:#e8b54d;--warnbg:#3a2f15;--bad:#f08a8a;--badbg:#3d1d1d;--chip:#22324a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:28px 16px 60px}h1{font-size:22px;margin:0}
+.sub{color:var(--ink2);font-size:13px;margin:4px 0 18px}
+form{display:flex;gap:8px;flex-wrap:wrap}input[type=text]{flex:1 1 380px;padding:11px 13px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+select,button{padding:10px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+button{background:var(--accent);border-color:var(--accent);color:#fff;cursor:pointer}button:disabled{opacity:.6}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-top:16px}
+.status{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;margin-right:6px}
+.answered{background:var(--okbg);color:var(--ok)}.partial{background:var(--warnbg);color:var(--warn)}.abstained{background:var(--badbg);color:var(--bad)}
+.meta{color:var(--ink2);font-size:12.5px}.answer{font-size:16px;margin:10px 0 0}
+.cite{background:var(--chip);color:var(--accent);border-radius:4px;padding:0 4px;font-size:12px;font-weight:600;cursor:pointer}
+h2{font-size:14px;margin:0 0 8px;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top}
+th{color:var(--ink2);font-weight:600}.lbl{font-weight:600}.supported{color:var(--ok)}.misattributed{color:var(--warn)}.unsupported,.contradicted{color:var(--bad)}
+.src{padding:8px 0;border-bottom:1px solid var(--line)}.src:last-child{border:0}.src b{color:var(--accent)}
+.src.hl{background:var(--chip);border-radius:6px;padding:8px}.tbl{overflow-x:auto}
+.examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.examples button{background:transparent;color:var(--ink2);border:1px dashed var(--line);font-size:12.5px;padding:5px 9px}
+</style>
+</head>
+<body><main>
+<h1>TrustRAG assistant</h1>
+<div class="sub" id="health">Verified answers with checked citations.</div>
+<form id="f">
+  <input type="text" id="q" placeholder="Ask a question about your documents…" autocomplete="off">
+  <select id="sys"><option value="trustrag">TrustRAG (verified)</option><option value="naive">Naive RAG (baseline)</option><option value="no_correction">TrustRAG without correction</option></select>
+  <button id="go">Ask</button>
+</form>
+<div class="examples" id="ex"></div>
+<div id="out"></div>
+</main>
+<script>
+const EX=["How long is the Padma Bridge?","Who first climbed K2 and when?","What does CRAG do when retrieval is judged Incorrect?","How many parameters does GPT-3 have?","Where does the oxygen released during photosynthesis come from?"];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ex=document.getElementById("ex");EX.forEach(t=>{const b=document.createElement("button");b.type="button";b.textContent=t;b.onclick=()=>{q.value=t;ask()};ex.appendChild(b)});
+fetch("/api/health").then(r=>r.json()).then(h=>{document.getElementById("health").textContent=`Mode: ${h.mode} · ${h.chunks} chunks indexed · LLM ${h.llm} · NLI ${h.nli}`}).catch(()=>{});
+function chips(t){return esc(t).replace(/\[(S\d+)\]/g,'<span class="cite" data-l="$1">[$1]</span>')}
+async function ask(){const q=document.getElementById("q").value.trim();if(!q)return;const go=document.getElementById("go");go.disabled=true;go.textContent="Checking…";
+ try{const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q,system:document.getElementById("sys").value})});
+ const d=await r.json();if(d.error)throw new Error(d.error);render(d)}catch(e){document.getElementById("out").innerHTML=`<div class="card">Error: ${esc(e.message)}</div>`}
+ go.disabled=false;go.textContent="Ask"}
+function render(d){const t=d.timings||{};
+ let h=`<div class="card"><span class="status ${d.status}">${d.status}</span><span class="meta">system ${esc(d.system)} · retrieval ${esc(d.retrieval_decision||"–")} · confidence ${(d.confidence||0).toFixed(2)} · ${(t.total||0).toFixed(2)}s</span>
+ <p class="answer">${chips(d.answer)}</p>${d.retrieval_actions?.length?`<div class="meta">Retrieval actions: ${esc(d.retrieval_actions.join(" · "))}</div>`:""}</div>`;
+ if(d.claims?.length){h+=`<div class="card"><h2>Claim verification</h2><div class="tbl"><table><tr><th>Sentence</th><th>Verdict</th><th>Cited → final</th><th>Entail</th><th>Action</th></tr>`+
+  d.claims.map(c=>`<tr><td>${esc(c.text)}${c.ghost_citations.length?`<div class="meta">ghost: ${esc(c.ghost_citations.join(", "))}</div>`:""}</td><td class="lbl ${c.label}">${c.label}</td><td>${esc(c.citations.join(",")||"–")} → ${esc(c.final_citations.join(",")||"–")}</td><td>${c.entailment.toFixed(2)}</td><td>${esc(c.action)}</td></tr>`).join("")+`</table></div></div>`}
+ if(d.passages?.length){h+=`<div class="card"><h2>Sources</h2>`+d.passages.map(p=>`<div class="src" id="src-${p.label}"><b>[${p.label}]</b> ${esc(p.title)} <span class="meta">(${esc(p.doc_id)} · relevance ${p.score.toFixed(2)})</span><div>${esc(p.text)}</div></div>`).join("")+`</div>`}
+ document.getElementById("out").innerHTML=h;
+ document.querySelectorAll(".cite").forEach(c=>c.onclick=()=>{document.querySelectorAll(".src").forEach(s=>s.classList.remove("hl"));const s=document.getElementById("src-"+c.dataset.l);if(s){s.classList.add("hl");s.scrollIntoView({behavior:"smooth",block:"center"})}})}
+document.getElementById("f").onsubmit=e=>{e.preventDefault();ask()};
+</script>
+</body></html>

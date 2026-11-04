@@ -1,0 +1,39 @@
+# Full neural mode (recommended for real experiments / thesis results).
+# Needs: pip install -r requirements.txt, internet for the first model download,
+# and an LLM key in .env (GROQ_API_KEY by default) or a local Ollama server.
+mode: full
+index_dir: indexes/demo_sentence-transformers
+
+embeddings:
+  backend: sentence-transformers
+  model: BAAI/bge-base-en-v1.5        # bge-large-en-v1.5 = better, slower
+  device: cpu                          # "cuda" if you have a GPU
+
+reranker:
+  backend: cross-encoder
+  model: BAAI/bge-reranker-base        # or cross-encoder/ms-marco-MiniLM-L-6-v2 (faster)
+  enabled: true
+  top_n: 20
+
+retrieval_gate:                        # thresholds on the reranker probability
+  upper: 0.50
+  lower: 0.05
+  keep_min_score: 0.02
+
+llm:
+  provider: groq                       # groq | openai | gemini | ollama | openai_compatible
+  model: llama-3.3-70b-versatile       # ollama example: llama3.1:8b
+  api_key_env: GROQ_API_KEY
+  temperature: 0.0
+
+nli:
+  backend: transformers
+  model: MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli   # large: MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli
+  device: cpu
+
+verification: {entail_threshold: 0.5, contradiction_threshold: 0.6, numeric_guard: true}
+
+evaluation:
+  # Independent judge: a DIFFERENT NLI model than the verifier, to avoid grading our own homework.
+  judge_nli_backend: transformers
+  judge_nli_model: cross-encoder/nli-deberta-v3-base

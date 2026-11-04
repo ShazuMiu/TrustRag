@@ -1,0 +1,10 @@
+# Offline mode: no downloads, no API keys. Runs anywhere with numpy + scikit-learn.
+# Use it for development, unit tests and to check the pipeline end to end.
+mode: lite
+index_dir: indexes/demo_lsa
+embeddings: {backend: lsa, lsa_dims: 256}
+reranker: {backend: lexical, enabled: true}
+retrieval_gate: {upper: 0.55, lower: 0.30, keep_min_score: 0.15}
+llm: {provider: extractive}
+nli: {backend: lexical}
+evaluation: {judge_nli_backend: same}
